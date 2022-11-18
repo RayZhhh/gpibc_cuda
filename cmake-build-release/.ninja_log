@@ -1,0 +1,9 @@
+# ninja log v5
+7	2883	6903621409764773	CMakeFiles/CudaGpibc.dir/main.cu.obj	5589f72c0cf1f917
+7	9202	6904584654868815	CMakeFiles/CudaGpibc.dir/classify_test.cu.obj	d46861d9179760a4
+6	248	6904501143875688	build.ninja	b4e71e3a492b73d0
+9202	10486	6904584667764544	CMakeFiles/CudaGpibc.dir/cmake_device_link.obj	80cfb5b7b90e384a
+10486	10737	6904584670105835	CudaGpibc.exe	df1818f99ef1ed36
+6	9445	6904585297974342	CMakeFiles/CudaGpibc.dir/classify_test.cu.obj	d46861d9179760a4
+9446	10710	6904585310696520	CMakeFiles/CudaGpibc.dir/cmake_device_link.obj	80cfb5b7b90e384a
+10710	10946	6904585312893003	CudaGpibc.exe	df1818f99ef1ed36

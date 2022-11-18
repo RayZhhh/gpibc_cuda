@@ -1,0 +1,3 @@
+C:/Users/Derek/Desktop/CudaGpibc/cmake-build-debug/CMakeFiles/CudaGpibc.dir
+C:/Users/Derek/Desktop/CudaGpibc/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Derek/Desktop/CudaGpibc/cmake-build-debug/CMakeFiles/rebuild_cache.dir
