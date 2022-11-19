@@ -24,6 +24,16 @@ public:
         this->img_w = img_w;
     }
 
+    BinaryClassifier(data_t &train_data, label_t &train_label, data_t &test_data, label_t &test_label,
+                     int img_h, int img_w) {
+        this->train_data = train_data;
+        this->train_label = train_label;
+        this->test_data = test_data;
+        this->test_label = test_label;
+        this->img_h = img_h;
+        this->img_w = img_w;
+    }
+
     // GP args
     int population_size = 500;
     const string init_method = "ramped_half_and_half";
@@ -41,7 +51,7 @@ public:
     int thread_per_block = 128;
 
     void init() {
-//        srand(time(0));
+        srand(time(0));
         population.clear();
         best_program_in_each_gen.clear();
         this->evaluator = new GPUEvaluator(this->train_data, this->train_label,
@@ -50,6 +60,7 @@ public:
 
     ~BinaryClassifier() {
         delete this->evaluator;
+        delete this->test_evaluator;
     }
 
     void train() {
@@ -95,18 +106,41 @@ public:
         }
     }
 
+    void run_test() {
+        this->test_evaluator = new GPUEvaluator(test_data, test_label, img_h, img_w);
+        this->test_evaluator->evaluate_population(best_program_in_each_gen);
+        this->best_test_program.fitness = -1;
+        for (auto &i : best_program_in_each_gen) {
+            if (i.fitness > best_test_program.fitness) {
+                best_test_program = i;
+            }
+        }
+        cout << endl;
+        cout << "[ ======= Run Test ======== ] " << endl;
+        cout << "[ Best program in test data ] " << best_test_program.str() << endl;
+        cout << "[ Accuracy                  ] " << best_test_program.fitness << endl;
+    }
+
 protected:
     // data args
     data_t train_data;
     label_t train_label;
+    data_t test_data;
+    label_t test_label;
     int img_h;
     int img_w;
 
+public:
     // populations
     Program best_program;
-    vecP population;
     vecP best_program_in_each_gen;
+    Program best_test_program;
+
+protected:
+    // populations
+    vecP population;
     GPUEvaluator *evaluator{};
+    GPUEvaluator *test_evaluator{};
 
     void population_init() {
         if (init_method == "ramped_half_and_half") {
@@ -177,7 +211,7 @@ protected:
         best_program_in_each_gen.emplace_back(best_program);
     }
 
-    void print_population_properties(int gen) {
+    void print_population_properties(int gen) const {
         cout << "[ Generation   ] " << gen << endl;
         cout << "[ Best Fitness ] " << best_program.fitness << endl;
         cout << "[ Best Program ] " << best_program.str() << endl;

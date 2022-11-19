@@ -9,8 +9,8 @@ import numpy as np
 IH = 128
 IW = 128
 
-OUT_F = '0_train.txt'
-SRC_P = 'kth_train/0/'
+OUT_F = '1_test.txt'
+SRC_P = 'kth_test/1/'
 
 with open(OUT_F, 'w') as fout:
     for root, ds, fs in os.walk(SRC_P):

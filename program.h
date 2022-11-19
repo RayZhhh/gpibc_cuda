@@ -144,11 +144,12 @@ public:
                 s.pop();
                 s.push(max(depth0, depth1) + 1);
             } else {
-                depth = s.top();
+                int depth_ = s.top();
                 s.pop();
-                s.push(depth + 1);
+                s.push(depth_ + 1);
             }
         }
+        assert(s.size() == 1);
         this->depth = s.top();
     }
 
@@ -249,7 +250,6 @@ protected:
     }
 
     void prefix_crossover(Prefix &donor) {
-        auto &prefix = donor;
         int self_start = randint_(1, inner_prefix.size() - 1);
         int self_end = subtree_index(inner_prefix, self_start);
 

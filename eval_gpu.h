@@ -584,6 +584,20 @@ public:
         allocate_program_buffer();
     }
 
+    ~GPUEvaluator() {
+        cudaFree(this->d_dataset);
+        cudaFree(this->d_stack);
+        cudaFree(this->d_conv_buffer);
+        cudaFree(this->d_hist_buffer);
+        cudaFree(this->d_std_res);
+        cudaFree(this->d_name);
+        cudaFree(this->d_rx);
+        cudaFree(this->d_ry);
+        cudaFree(this->d_rh);
+        cudaFree(this->d_rw);
+        cudaFree(this->d_plen);
+    }
+
 protected:
     vector<vector<float>> dataset;
     vector<int> label;

@@ -9,7 +9,7 @@ import numpy as np
 IH = 128
 IW = 128
 
-OUT_F = 'sad_train.txt'
+OUT_F = '1_train.txt'
 SRC_P = 'sad_train/'
 
 with open(OUT_F, 'w') as fout:

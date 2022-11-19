@@ -1,9 +1,13 @@
 # ninja log v5
 7	2883	6903621409764773	CMakeFiles/CudaGpibc.dir/main.cu.obj	5589f72c0cf1f917
-7	9202	6904584654868815	CMakeFiles/CudaGpibc.dir/classify_test.cu.obj	d46861d9179760a4
-6	248	6904501143875688	build.ninja	b4e71e3a492b73d0
-9202	10486	6904584667764544	CMakeFiles/CudaGpibc.dir/cmake_device_link.obj	80cfb5b7b90e384a
-10486	10737	6904584670105835	CudaGpibc.exe	df1818f99ef1ed36
-6	9445	6904585297974342	CMakeFiles/CudaGpibc.dir/classify_test.cu.obj	d46861d9179760a4
-9446	10710	6904585310696520	CMakeFiles/CudaGpibc.dir/cmake_device_link.obj	80cfb5b7b90e384a
-10710	10946	6904585312893003	CudaGpibc.exe	df1818f99ef1ed36
+6	10881	6905327985801619	CMakeFiles/CudaGpibc.dir/classify_test.cu.obj	d46861d9179760a4
+5	256	6905330649615338	build.ninja	b4e71e3a492b73d0
+10883	12235	6905327999455990	CMakeFiles/CudaGpibc.dir/cmake_device_link.obj	80cfb5b7b90e384a
+12236	12622	6905328003062309	CudaGpibc.exe	df1818f99ef1ed36
+1	117	6905330649615338	build.ninja	b4e71e3a492b73d0
+6	9755	6905330747440814	CMakeFiles/CudaGpibc.dir/classify_test.cu.obj	d46861d9179760a4
+9756	11099	6905330760930097	CMakeFiles/CudaGpibc.dir/cmake_device_link.obj	80cfb5b7b90e384a
+11099	11383	6905330763577858	CudaGpibc.exe	df1818f99ef1ed36
+6	10000	6905335279023471	CMakeFiles/CudaGpibc.dir/classify_test.cu.obj	d46861d9179760a4
+10001	11366	6905335292750016	CMakeFiles/CudaGpibc.dir/cmake_device_link.obj	80cfb5b7b90e384a
+11366	11639	6905335295197280	CudaGpibc.exe	df1818f99ef1ed36

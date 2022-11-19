@@ -9,7 +9,7 @@ import numpy as np
 IH = 32
 IW = 32
 
-with open('cat_test.txt', 'w') as fout:
+with open('0_test.txt', 'w') as fout:
     for root, ds, fs in os.walk('test_cat/'):
         for f in fs:
             image = Image.open('test_cat/' + f).convert('L')  # 用PIL中的Image.open打开图像
