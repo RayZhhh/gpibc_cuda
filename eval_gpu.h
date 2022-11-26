@@ -15,19 +15,31 @@
 #include <vector>
 #include "program.h"
 
+
+// the max value of pixels
+// this value is for histogram based functions
 #define MAX_PIXEL_VALUE 255
+
+// max length of programs
+// the kernel would crash if a program's length exceeds this value
 #define MAX_PROGRAM_LEN 200
-#define MAX_TOP 10
+
+// the max stack size for evaluating
+// the kernel would crash if the evaluation of a program need more stack spaces
+// in default cases where the max depth is set to 8, a max top of 10 is enough (actually 8 is enough)
+#define MAX_STACK_SIZE 10
 
 
-__device__ inline float __dataset_value(float *dataset, int data_size, int im_w, int i, int j) {
+__device__ inline
+float __dataset_value(float *dataset, int data_size, int im_w, int i, int j) {
     int pixel_row = i * im_w + j;
     int pixel_col = blockIdx.x * blockDim.x + threadIdx.x;
     return dataset[pixel_row * data_size + pixel_col];
 }
 
 
-__device__ inline int __pixel_index_in_stack(int data_size, int im_h, int im_w, int i, int j) {
+__device__ inline
+int __pixel_index_in_stack(int data_size, int im_h, int im_w, int i, int j) {
     int program_no = blockIdx.y;
     int pixel_row = i * im_w + j;
     int pixel_col = blockIdx.x * blockDim.x + threadIdx.x;
@@ -36,12 +48,14 @@ __device__ inline int __pixel_index_in_stack(int data_size, int im_h, int im_w, 
 }
 
 
-__device__ inline float __pixel_value_in_stack(float *stack, int data_size, int im_h, int im_w, int i, int j) {
+__device__ inline
+float __pixel_value_in_stack(float *stack, int data_size, int im_h, int im_w, int i, int j) {
     return stack[__pixel_index_in_stack(data_size, im_h, im_w, i, j)];
 }
 
 
-__device__ inline int __pixel_conv_buffer_index(int data_size, int im_h, int im_w, int i, int j) {
+__device__ inline
+int __pixel_conv_buffer_index(int data_size, int im_h, int im_w, int i, int j) {
     int program_no = blockIdx.y;
     int pixel_row = i * im_w + j;
     int pixel_col = blockIdx.x * blockDim.x + threadIdx.x;
@@ -49,19 +63,22 @@ __device__ inline int __pixel_conv_buffer_index(int data_size, int im_h, int im_
 }
 
 
-__device__ inline float __pixel_value_in_conv_buffer(float *buffer, int data_size, int im_h, int im_w, int i, int j) {
+__device__ inline
+float __pixel_value_in_conv_buffer(float *buffer, int data_size, int im_h, int im_w, int i, int j) {
     return buffer[__pixel_conv_buffer_index(data_size, im_h, im_w, i, j)];
 }
 
 
-__device__ inline int __std_res_index(int top, int data_size) {
+__device__ inline
+int __std_res_index(int top, int data_size) {
     int program_no = blockIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    return program_no * MAX_TOP * data_size + top * data_size + col;
+    return program_no * MAX_STACK_SIZE * data_size + top * data_size + col;
 }
 
 
-__device__ inline float __std_res_value(float *std_res, int top, int data_size) {
+__device__ inline
+float __std_res_value(float *std_res, int top, int data_size) {
     return std_res[__std_res_index(top, data_size)];
 }
 
@@ -69,8 +86,8 @@ __device__ inline float __std_res_value(float *std_res, int top, int data_size) 
 // ===========================================================
 // ===========================================================
 
-__device__ void
-_g_std(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, int rw, float *std_res, int top) {
+__device__
+void _g_std(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, int rw, float *std_res, int top) {
     // image index this thread is response for
     int img_index = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -96,7 +113,8 @@ _g_std(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, 
 }
 
 
-__device__ void _sub(float *std_res, int top, int data_size) {
+__device__
+void _sub(float *std_res, int top, int data_size) {
     int img_index = blockDim.x * blockIdx.x + threadIdx.x;
 
     if (img_index < data_size) {
@@ -107,7 +125,8 @@ __device__ void _sub(float *std_res, int top, int data_size) {
 }
 
 
-__device__ void _region(float *dataset, int data_size, int im_h, int im_w, float *stack) {
+__device__
+void _region(float *dataset, int data_size, int im_h, int im_w, float *stack) {
     int img_index = blockDim.x * blockIdx.x + threadIdx.x;
 
     if (img_index < data_size) {
@@ -303,7 +322,7 @@ _gauxy(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, 
 
 
 __device__ void
-_log1(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, int rw, float *buffer) {
+_log(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, int rw, float *buffer) {
     int img_index = blockDim.x * blockIdx.x + threadIdx.x;
 
     if (img_index < data_size) {
@@ -315,7 +334,7 @@ _log1(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, i
                 sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j) * 2;
                 sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j + 1);
                 sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j - 2);
-                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j - 2) * 2;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j - 1) * 2;
                 sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j) * 16;
                 sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j + 1) * 2;
                 sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j + 2);
@@ -323,6 +342,104 @@ _log1(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, i
                 sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j) * 2;
                 sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j + 1);
                 sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j);
+                buffer[__pixel_conv_buffer_index(data_size, im_h, im_w, i, j)] = sum;
+            }
+        }
+
+        // copy the result from buffer to stack
+        for (int i = rx + 2; i < rx + rh - 2; i++) {
+            for (int j = ry + 2; j < ry + rw - 2; j++) {
+                int stack_index = __pixel_index_in_stack(data_size, im_h, im_w, i, j);
+                stack[stack_index] = __pixel_value_in_conv_buffer(buffer, data_size, im_h, im_w, i, j);
+            }
+        }
+    }
+}
+
+
+__device__ void
+_log1(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, int rw, float *buffer) {
+    int img_index = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if (img_index < data_size) {
+        for (int i = rx + 2; i < rx + rh - 2; i++) {
+            for (int j = ry + 2; j < ry + rw - 2; j++) {
+                float sum = 0;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 2, j - 2) * 0.109;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 2, j - 1) * 0.246;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 2, j) * 0.270;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 2, j + 1) * 0.246;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 2, j + 2) * 0.109;
+                //
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j - 2) * 0.246;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j) * 0.606;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j + 2) * 0.246;
+                //
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j - 2) * 0.270;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j - 1) * 0.606;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j) * 2;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j + 1) * 0.606;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j + 2) * 0.270;
+                //
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j - 2) * 0.246;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j) * 0.606;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j + 2) * 0.246;
+                //
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j - 2) * 0.109;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j - 1) * 0.246;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j) * 0.270;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j + 1) * 0.246;
+                sum += __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j + 2) * 0.109;
+                //
+                buffer[__pixel_conv_buffer_index(data_size, im_h, im_w, i, j)] = sum;
+            }
+        }
+
+        // copy the result from buffer to stack
+        for (int i = rx + 2; i < rx + rh - 2; i++) {
+            for (int j = ry + 2; j < ry + rw - 2; j++) {
+                int stack_index = __pixel_index_in_stack(data_size, im_h, im_w, i, j);
+                stack[stack_index] = __pixel_value_in_conv_buffer(buffer, data_size, im_h, im_w, i, j);
+            }
+        }
+    }
+}
+
+
+__device__ void
+_log2(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, int rw, float *buffer) {
+    int img_index = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if (img_index < data_size) {
+        for (int i = rx + 2; i < rx + rh - 2; i++) {
+            for (int j = ry + 2; j < ry + rw - 2; j++) {
+                float sum = 0;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 2, j - 1) * 0.1;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 2, j) * 0.151;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 2, j + 1) * 0.1;
+                //
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j - 2) * 0.1;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j - 1) * 0.292;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j) * 0.386;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j + 1) * 0.292;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i - 1, j + 2) * 0.1;
+                //
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j - 2) * 0.151;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j - 1) * 0.386;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j) * 0.5;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j + 1) * 0.386;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i, j + 2) * 0.151;
+                //
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j - 2) * 0.1;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j - 1) * 0.292;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j) * 0.386;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j + 1) * 0.292;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 1, j + 2) * 0.1;
+                //
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j - 1) * 0.1;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j) * 0.151;
+                sum -= __pixel_value_in_stack(stack, data_size, im_h, im_w, i + 2, j + 1) * 0.1;
+                //
                 buffer[__pixel_conv_buffer_index(data_size, im_h, im_w, i, j)] = sum;
             }
         }
@@ -378,14 +495,16 @@ _lbp(float *stack, int data_size, int im_h, int im_w, int rx, int ry, int rh, in
 }
 
 
-__device__ inline int __hist_buffer_index(int data_size, int value) {
+__device__ inline
+int __hist_buffer_index(int data_size, int value) {
     int program_no = blockIdx.y;
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     return program_no * (MAX_PIXEL_VALUE + 1) * data_size + value * data_size + col;
 }
 
 
-__device__ inline float __hist_buffer_value(float *buffer, int data_size, int value) {
+__device__ inline
+float __hist_buffer_value(float *buffer, int data_size, int value) {
     return buffer[__hist_buffer_index(data_size, value)];
 }
 
@@ -437,39 +556,25 @@ void _hist_eq(float *stack, int data_size, int im_h, int im_w, int rx, int ry, i
 }
 
 
-// test function for debugging
-// print device side programs
-__device__ void print_program(int *name, int *plen) {
-    if (threadIdx.x == 0) {
-        int program_no = blockIdx.y;
-        printf("\nplen = %d\n", plen[program_no]);
-        for (int j = 0; j < plen[program_no]; j++) {
-            printf("%d ", name[program_no * MAX_PROGRAM_LEN + j]);
-        }
-        printf("\n");
-    }
-}
-
-
-#define DEBUG 1
-
-
-__global__ void
-infer_population(int *name, int *rx, int *ry, int *rh, int *rw, int *plen, int img_h, int img_w, int data_size,
+__global__
+void infer_population(int *name, int *rx, int *ry, int *rh, int *rw, int *plen, int img_h, int img_w, int data_size,
                  float *dataset, float *stack, float *conv_buffer, float *hist_buffer, float *std_res) {
-    int program_no = blockIdx.y;
-    int top = 0, reg_x = 0, reg_y = 0, reg_h = 0, reg_w = 0;
 
-#if DEBUG == 1
-    assert(program_no * MAX_PROGRAM_LEN + plen[program_no] < gridDim.y * MAX_PROGRAM_LEN);
-#endif
+    // the index of program that the current thread is responsible for
+    int program_no = blockIdx.y;
+
+    // init the top of the stack, the x, y, h, w of the region
+    int top = 0, reg_x = 0, reg_y = 0, reg_h = 0, reg_w = 0;
 
     // reverse iteration
     int len = plen[program_no];
     for (int i = len - 1; i >= 0; i--) {
+
+        // the offset of the node
         int node_offset = MAX_PROGRAM_LEN * program_no + i;
         int node_name = name[node_offset];
 
+        // do correspond operations with respect to the type of the node
         if (node_name == Region_R) {
             reg_x = rx[node_offset], reg_y = ry[node_offset], reg_h = rh[node_offset], reg_w = rw[node_offset];
             _region(dataset, data_size, img_h, img_w, stack);
@@ -481,10 +586,6 @@ infer_population(int *name, int *rx, int *ry, int *rh, int *rw, int *plen, int i
         } else if (node_name == G_Std) {
             _g_std(stack, data_size, img_h, img_w, reg_x, reg_y, reg_h, reg_w, std_res, top);
             top++;
-
-#if DEBUG == 1
-            assert(top <= 10);
-#endif
 
         } else if (node_name == Hist_Eq) {
             _hist_eq(stack, data_size, img_h, img_w, reg_x, reg_y, reg_h, reg_w, hist_buffer);
@@ -513,8 +614,16 @@ infer_population(int *name, int *rx, int *ry, int *rh, int *rw, int *plen, int i
             _sobel_y(stack, data_size, img_h, img_w, reg_x, reg_y, reg_h, reg_w, conv_buffer);
             reg_x += 1, reg_y += 1, reg_h -= 2, reg_w -= 2;
 
+        } else if (node_name == LoG) {
+            _log(stack, data_size, img_h, img_w, reg_x, reg_y, reg_h, reg_w, conv_buffer);
+            reg_x += 2, reg_y += 2, reg_h -= 4, reg_w -= 4;
+
         } else if (node_name == LoG1) {
             _log1(stack, data_size, img_h, img_w, reg_x, reg_y, reg_h, reg_w, conv_buffer);
+            reg_x += 2, reg_y += 2, reg_h -= 4, reg_w -= 4;
+
+        } else if (node_name == LoG2) {
+            _log2(stack, data_size, img_h, img_w, reg_x, reg_y, reg_h, reg_w, conv_buffer);
             reg_x += 2, reg_y += 2, reg_h -= 4, reg_w -= 4;
 
         } else if (node_name == LBP) {
@@ -524,43 +633,26 @@ infer_population(int *name, int *rx, int *ry, int *rh, int *rw, int *plen, int i
         } else if (node_name == Sub) {
             _sub(std_res, top, data_size);
             top--;
-        } else {
-            printf("Error: Do not support the function, the value of the function is: %d", node_name);
-            print_program(name, plen);
 
-#if DEBUG == 1
-            assert(1 == 0);
-#endif
+        } else {
+            printf("Error: Do not support the function, the value of the function is: %d. Try to debug.\n", node_name);
         }
     }
 
+    // threads synchronization
     __syncthreads();
+
     if (top != 1) {
-        printf("Error: top != 1, the blockIdx.y is: %d", (int) blockIdx.y);
-#if DEBUG == 1
-        assert(2 == 0);
-#endif
+        printf("Error: top != 1, this may because that the length of program is larger than MAX_PROGRAM_LEN.\n");
     }
-
-}
-
-
-// test function for debugging
-// print device side programs
-__global__ void print_pops(int *name, int *rx, int *ry, int *rh, int *rw, int *plen) {
-    int program_no = blockIdx.y;
-    printf("%d\n", blockIdx.y);
-    printf("program len: %d\n", plen[program_no]);
-    for (int j = 0; j < 5; j++) {
-        printf("%d ", name[program_no * MAX_PROGRAM_LEN + j]);
-    }
-    printf("\n");
-
 }
 
 
 class GPUEvaluator {
+    typedef vector<Program> Pop;
+
 public:
+
     GPUEvaluator(vector<vector<float>> dataset, vector<int> label, int img_h, int img_w,
                  int eval_batch = 1, int thread_per_block = 128) {
         this->dataset = std::move(dataset);
@@ -582,6 +674,17 @@ public:
 
         // memory space for program
         allocate_program_buffer();
+    }
+
+    /**
+     * Evaluate fitness for programs in the population.
+     * @param pop population.
+     */
+    void evaluate_population(Pop &pop) {
+        for (int i = 0; i < pop.size(); i += eval_batch) {
+            int last_pos = std::min(i + eval_batch, (int) pop.size());
+            fit_eval_for_a_batch(pop, i, last_pos);
+        }
     }
 
     ~GPUEvaluator() {
@@ -622,18 +725,11 @@ protected:
     int *d_rw{};
     int *d_plen{};
 
-public:
-
-    typedef vector<Program> Pop;
-
-    void evaluate_population(Pop &pop) {
-        for (int i = 0; i < pop.size(); i += eval_batch) {
-            int last_pos = std::min(i + eval_batch, (int) pop.size());
-            fit_eval_for_a_batch(pop, i, last_pos);
-        }
-    }
-
 protected:
+
+    /**
+     * Evaluate programs with the indexes in of range [start_pos, end_pos) in the population.
+     */
     void fit_eval_for_a_batch(Pop &pop, int start_pos, int end_pos) const {
         int cur_batch_size = end_pos - start_pos;
 
@@ -681,19 +777,14 @@ protected:
         cudaDeviceSynchronize();
 
         // copy result
-        auto *h_res = new float[data_size * eval_batch * MAX_TOP];
-        cudaMemcpy(h_res, d_std_res, sizeof(float) * MAX_TOP * data_size * eval_batch, cudaMemcpyDeviceToHost);
+        auto *h_res = new float[data_size * eval_batch * MAX_STACK_SIZE];
+        cudaMemcpy(h_res, d_std_res, sizeof(float) * MAX_STACK_SIZE * data_size * eval_batch, cudaMemcpyDeviceToHost);
 
+        // calculate accuracy
         for (int i = 0; i < cur_batch_size; i++) {
             int correct = 0;
             for (int j = 0; j < data_size; j++) {
-                auto predict = h_res[i * data_size * MAX_TOP + j];
-
-                if (!isfinite(predict)) {
-                    cerr << "predict value is not finite.";
-                    predict = 0;
-                }
-
+                auto predict = h_res[i * data_size * MAX_STACK_SIZE + j];
                 if (predict > 0 && label[j] > 0 || predict < 0 && label[j] < 0) {
                     correct++;
                 }
@@ -701,7 +792,7 @@ protected:
             pop[start_pos + i].fitness = (float) correct / (float) data_size;
         }
 
-        // get accuracy
+        // delete h_res
         delete[] h_res;
     }
 
@@ -730,7 +821,7 @@ protected:
     }
 
     void allocate_device_res_buffer() {
-        cudaMalloc((void **) &(this->d_std_res), sizeof(float) * MAX_TOP * data_size * eval_batch);
+        cudaMalloc((void **) &(this->d_std_res), sizeof(float) * MAX_STACK_SIZE * data_size * eval_batch);
     }
 
     void allocate_program_buffer() {

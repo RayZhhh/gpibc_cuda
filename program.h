@@ -5,6 +5,23 @@
 #ifndef CUGPIBC_PROGRAM_H
 #define CUGPIBC_PROGRAM_H
 
+// =================================================================================
+// Multi-Layer GP tree structure for binary image classification.
+// =================================================================================
+//
+// Classification Layer =======> class_0 <= [result <= 0] | [result > 0] => class_1
+//                                                        |
+//                                                      [Sub]
+//                                                     /     \
+// Feature Construction Layer =>                 [G_Std]      [G_Std]
+//                                                  |            |
+//                                             [Hist_Eq]      [Lap]
+//                                                  |            |
+// Feature Extraction Layer ===>               [Sobel_X]      [Sobel_Y]
+//                                                  |            |
+// Region Detection Layer =====>              [Region_S]      [Region_R]
+// =================================================================================
+
 #include <iostream>
 #include <utility>
 #include <vector>
@@ -23,22 +40,20 @@ typedef vector<int> vecI;
 
 
 enum F {
-    G_Std, Sub, Region_S, Region_R, Hist_Eq, Gau1, Lap, Sobel_X, Sobel_Y, LoG1, LBP, Gau11, GauXY
+    G_Std, Sub, Region_S, Region_R, Hist_Eq, Gau1, Lap, Sobel_X, Sobel_Y, LoG, LoG1, LoG2, LBP, Gau11, GauXY
 };
 
 
 string func_to_str(int f) {
     string strs[] = {"G_Std", "Sub", "Region_S", "Region_R", "Hist_Eq", "Gau1", "Lap",
-                     "Sobel_X", "Sobel_Y", "LoG1", "LBP", "Gau11", "GauXY"};
+                     "Sobel_X", "Sobel_Y", "LoG", "LoG1", "LoG2", "LBP", "Gau11", "GauXY"};
     return strs[f];
 }
 
 
-static vecI feature_construct_set = {G_Std, Sub};
-static vecI terminal_set = {Region_R, Region_S};
-static vecI inter_func_set = {Hist_Eq, Gau1, Lap, Sobel_X, Sobel_Y, LoG1, LBP, Gau11, GauXY};
-//static vecI inter_func_set = {Gau1, Lap, Sobel_X, Sobel_Y, LoG1, LBP, Gau11, GauXY};
-
+static vecI feature_construct_set = {G_Std, Sub}; // NOLINT
+static vecI terminal_set = {Region_R, Region_S}; // NOLINT
+static vecI inter_func_set = {Hist_Eq, Gau1, Lap, Sobel_X, Sobel_Y, LoG, LoG1, LoG2, LBP, Gau11, GauXY}; // NOLINT
 
 
 class Node {

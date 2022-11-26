@@ -35,6 +35,7 @@ void append_img_to_vec(const string &filename, vector<vector<float>> &data, vect
         split(line, strs, " ");
         vector<float> temp;
         for (auto &str: strs) {
+            if (str == "\r" || str == "\r\n" || str == "\n") continue;
             temp.push_back(stof(str));
         }
         data.push_back(temp);
@@ -89,18 +90,11 @@ void run_test(const string& test_name, int h, int w, int eval_batch=10, const st
 
 
 int main(int argc, const char *argv[]) {
-    auto fname = string(argv[1]);
-    auto h = stoi(argv[2]);
-    auto w = stoi(argv[3]);
-    auto eval_batch = stoi(argv[4]);
-    string res_path;
-    if (argv[5] != nullptr) {
-        res_path = string(argv[5]);
-    } else {
-        res_path = "res.csv";
-    }
-
-    run_test(fname, h, w, eval_batch, res_path);
-
+    run_test("../jaffe", 128, 128, 500, "../temp.csv");
+//    run_test("cifar", 32, 32, 10);
+//    run_test("mnist", 28, 28, 10);
+//    run_test("coil", 128, 128, 500);
+//    run_test("kth", 128, 128, 100);
+//    run_test("uiuc", 40, 100, 250);
     return 0;
 }

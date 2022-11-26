@@ -1,4 +1,4 @@
-Remove -Item res.csv
+Remove-Item res.csv
 nvcc -o run main.cu
 
 ./run jaffe 128 128 250

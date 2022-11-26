@@ -42,16 +42,17 @@ public:
     int generations = 50;
     int elist_size = 5;
     int tournament_size = 5;
-    float crossover_prob = 0.6;
-    float mutation_prob = 0.3;
+    float crossover_prob = 0.8;
+    float mutation_prob = 0.19;
 
     // GPU params
     bool use_gpu = true;
+    int gpu_id = 0;
     int eval_batch = 10;
     int thread_per_block = 128;
 
     void init() {
-        srand(time(0));
+        srand(time(0)); // NOLINT
         population.clear();
         best_program_in_each_gen.clear();
         this->evaluator = new GPUEvaluator(this->train_data, this->train_label,
@@ -64,6 +65,7 @@ public:
     }
 
     void train() {
+        // population initialization
         population_init();
 
         // evaluate fitness for the initial population
@@ -87,8 +89,10 @@ public:
 
             // generate new population
             for (int i = 0; i < population_size - elist_size; i++) {
+
                 // selection
                 auto program = tournament_selection();
+
                 // mutation
                 mutation(program);
                 new_population.emplace_back(program);

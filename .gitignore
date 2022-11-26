@@ -1,0 +1,6 @@
+*.exe
+*.csv
+*.lib
+*.exp
+*.ps1
+*.sh
